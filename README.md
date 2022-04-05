@@ -62,9 +62,9 @@ See the log
 % overtime log
  id |         created_at         |    date    | hours | minutes |      message
 ----+----------------------------+------------+-------+---------+--------------------
- 17 | 2022-04-05 23:37:23.221919 | 2022-04-05 |     0 |     -30 |
- 16 | 2022-04-05 23:37:16.541039 | 2022-02-02 |     1 |       0 |
- 15 | 2022-04-05 23:37:09.200431 | 2022-04-05 |     2 |      30 | Worked a lot today
+ 28 | 2022-04-06 00:16:56.309263 | 2022-04-06 |     0 |     -30 |
+ 27 | 2022-04-06 00:16:48.850319 | 2022-02-02 |     1 |       0 |
+ 26 | 2022-04-06 00:16:42.484353 | 2022-04-06 |     2 |      30 | Worked a lot today
 ```
 
 Check your current balance
@@ -73,7 +73,7 @@ Check your current balance
 % overtime balance
  hours_balance | minutes_balance
 ---------------+-----------------
-             1 |              30
+             3 |               0
 ```
 
 Undo the last entry
@@ -83,8 +83,8 @@ Undo the last entry
 % overtime log
  id |         created_at         |    date    | hours | minutes |      message
 ----+----------------------------+------------+-------+---------+--------------------
- 16 | 2022-04-05 23:37:16.541039 | 2022-02-02 |     1 |       0 |
- 15 | 2022-04-05 23:37:09.200431 | 2022-04-05 |     2 |      30 | Worked a lot today
+ 27 | 2022-04-06 00:16:48.850319 | 2022-02-02 |     1 |       0 |
+ 26 | 2022-04-06 00:16:42.484353 | 2022-04-06 |     2 |      30 | Worked a lot today
 ```
 
 You can of course also work with the data directly from postgres:
@@ -98,6 +98,12 @@ overtime=# \d
 --------+-----------------+----------+-------
  public | overtime        | table    | per
  public | overtime_id_seq | sequence | per
+
+overtime=# select * from overtime;
+ id |         created_at         |    date    | hours | minutes |      message
+----+----------------------------+------------+-------+---------+--------------------
+ 26 | 2022-04-06 00:16:42.484353 | 2022-04-06 |     2 |      30 | Worked a lot today
+ 27 | 2022-04-06 00:16:48.850319 | 2022-02-02 |     1 |       0 |
 ```
 
 ## TODOs
