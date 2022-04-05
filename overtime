@@ -1,0 +1,162 @@
+#!/usr/local/bin/bash
+
+#
+# Help text for sub commands
+#
+
+help () {
+    echo "
+Overtime
+
+Keep track of your overtime work hours.
+
+Usage:
+  overtime [-c=<custom db name>] install
+  overtime [-c=<custom db name>] add [-n -d <date> -m <message>] <hours> <minutes>
+  overtime [-c=<custom db name>] flex [-n -d <date> -m <message>] <hours> <minutes>
+  overtime [-c=<custom db name>] log
+  overtime [-c=<custom db name>] balance
+  overtime [-c=<custom db name>] undo
+  overtime -h
+
+Options:
+  -h            Show this screen.
+  -n            Negate hours and minutes.
+  -d <date>     Date for the added overtime on format YYYY-MM-DD surrounded by quotes. Defaults to today.
+  -m <message>  Message for the registration surrounded by quotes, max 150 characters. Defaults to empty message.
+"
+}
+
+#
+# Sub commands
+#
+
+initialize_db () {
+    createdb "${1:-overtime}" "A simple way to keep track of your overtime."
+    psql -d "${1:-overtime}" -f ./dbsetup.sql
+}
+add_horus () {
+    local dbname="$1"
+    local hours="$2"
+    local minutes="$3"
+    local date="$4"
+    local message="$5"
+    local insert_names=""
+    local insert_values=""
+
+    local names=("date" "hours" "minutes" "message")
+    local values=("'${date}'" "$hours" "$minutes" "'$message'")
+
+    local names_query=""
+    local values_query=""
+
+    # Build up query string based on which parameters were provided
+    for i in "${!names[@]}"
+    do
+        if [[ ! -z "${values[i]}" && "${values[i]}" != "''" ]]; then
+            names_query+="${names[i]}, "
+            values_query+="${values[i]}, "
+        fi
+
+    done
+
+    # The ``:0:-2`` strips off the trailing comma and white space
+    psql -d $dbname -c "INSERT INTO overtime (${names_query:0:-2}) VALUES (${values_query:0:-2})" --quiet
+}
+log () {
+    psql -d $1 -c "SELECT * FROM overtime ORDER BY created_at DESC" --quiet
+}
+balance () {
+    psql -d $1 -c "SELECT SUM(hours) AS hours_balance, SUM(minutes) AS minutes_balance FROM overtime" --quiet
+}
+undo () {
+    psql -d $1 -c "DELETE FROM overtime WHERE created_at in (SELECT created_at from overtime ORDER BY created_at desc limit 1)" --quiet
+}
+
+
+#
+# Main program
+#
+
+database=overtime
+while getopts "hc:" opt; do
+    case "${opt}" in
+        h)  # Show help then exit
+            help
+            exit
+            ;;
+        c)  # Custom db name
+            database="${OPTARG}"
+            ;;
+        \?) # Invalid option, getopts prints a message
+            exit 2
+            ;;
+    esac
+done
+shift "$(($OPTIND-1))"
+
+if [ "$1" = "install" ]; then
+    initialize_db $database
+elif [[ "$1" = "add" || "$1" = "flex" ]]; then
+    command_name="$1"
+    # Remove "add" from arguments
+    shift 1
+    # Don't negate by default
+    negate=0
+    # Reset optind
+    OPTIND=1
+    while getopts "nd:m:" opt; do
+        case "$opt" in
+            n) # Add a negative amount
+                negate=1
+                ;;
+            m)  # Message
+                message="$OPTARG"
+                ;;
+            d) # Custom date
+                if [[ $OPTARG =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && $(date -f "%Y-%m-%d" -j "$OPTARG" > /dev/null 2>&1); then
+                    # TODO: this only works on OSX. Linux: https://stackoverflow.com/a/37144230
+                    date="$OPTARG"
+                else
+                    echo "Error: date must be on format YYYY-MM-DD surrounded by quotes, e.g. \"2022-02-22\""
+                    exit
+                fi
+                ;;
+            \?) # Invalid option, getopts prints a message
+                exit 2
+                ;;
+        esac
+    done
+    shift "$(($OPTIND-1))"
+
+    # Default values are 0
+    hours="${1:-0}"
+    minutes="${2:-0}"
+
+    # Check that times are valid
+    if [[ $hours == 0 && $minutes == 0 ]]; then
+        echo "Error: at least one of <hours> and <minutes> must be non-zero"
+        exit
+    elif [[ $hours -lt 0 || $hours -gt 24 ]]; then
+        echo "Error: hours must be between 0-24, got $hours"
+        exit
+    elif [[ ${minutes#-} -lt 0 || ${minutes#-} -gt 59 ]]; then
+        echo "Error: minutes must be between 0-59, got $minutes"
+        exit
+    elif [[ $negate == 1 || $command_name == flex ]]; then
+        # Negate if flag is set
+        hours=$((hours>0 ? -hours : hours))
+        minutes=$((minutes>0 ? -minutes : minutes))
+    fi
+
+    add_horus "$database" "$hours" "$minutes" "${date:-""}" "${message:-""}"
+
+elif [ "$1" = "log" ]; then
+    log "$database"
+elif [ "$1" = "balance" ]; then
+    balance "$database"
+elif [ "$1" = "undo" ]; then
+    undo "$database"
+else
+    help
+fi
