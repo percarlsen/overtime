@@ -67,7 +67,19 @@ log () {
     psql -d $1 -c "SELECT * FROM overtime ORDER BY created_at DESC" --quiet
 }
 balance () {
-    psql -d $1 -c "SELECT SUM(hours) AS hours_balance, SUM(minutes) AS minutes_balance FROM overtime" --quiet
+    # Store result in a string before outputting as this will strip any whitespace
+    balance_text=`
+        psql -d $1 -t -c "
+            SELECT CONCAT(
+                'Current balance: ',
+                SUM(hours) + SUM(minutes)/60,
+                ' hours and ',
+                MOD(SUM(minutes), 60),
+                ' minutes'
+            )
+            FROM overtime
+        " --quiet`
+    echo ${balance_text}
 }
 undo () {
     psql -d $1 -c "DELETE FROM overtime WHERE created_at in (SELECT created_at from overtime ORDER BY created_at desc limit 1)" --quiet
