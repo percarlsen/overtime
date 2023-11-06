@@ -8,25 +8,25 @@ A simple program to register overtime work hours.
 2. Clone this repo.
 3. Change directory to the repo and make the program executable with
 
-```
+```bash
 chmod +x overtime
 ```
 
 4. (Optional) add to path to access it anywhere
 
-```
+```bash
 export PATH=$PATH:`pwd`
 ```
 
 5. Run the initial installation. This step will create a postgres databased named `overtime` (you may specify another name with the `-c` flag, in which case this has to be provided in all commands) with one table called `overtime`. This is where all logged hours will be stored.
 
-```
+```bash
 overtime install
 ```
 
 6. You're good to go. A good starting point is probably
 
-```
+```bash
 overtime -h
 ```
 
@@ -34,7 +34,7 @@ overtime -h
 
 Add two and a half hour overtime for today with a custom message:
 
-```
+```bash
 overtime add -m "Worked a lot today" 2 30
 # or, if you used a custom db name (this goes for all examples below as well):
 overtime -c my_custom_db_name add -m "Worked a lot today" 2 30
@@ -42,13 +42,13 @@ overtime -c my_custom_db_name add -m "Worked a lot today" 2 30
 
 Add one hour on another day:
 
-```
+```bash
 overtime add -d "2022-02-02" 1
 ```
 
 Add 30 minutes of negative hours. There are three ways to achieve this. Either use the `flex` subcommand, the `add` subcommand with the `-n` flag or the `add` subcommand with negative numbers:
 
-```
+```bash
 overtime flex 0 30
 # or:
 overtime add -n 0 30
@@ -58,7 +58,7 @@ overtime add 0 -30
 
 See the log
 
-```
+```bash
 overtime log
  id |         created_at         |    date    | hours | minutes |      message
 ----+----------------------------+------------+-------+---------+--------------------
@@ -69,7 +69,7 @@ overtime log
 
 Check your current balance
 
-```
+```bash
 overtime balance
  hours_balance | minutes_balance
 ---------------+-----------------
@@ -78,7 +78,7 @@ overtime balance
 
 Undo the last entry
 
-```
+```bash
 overtime undo
 overtime log
  id |         created_at         |    date    | hours | minutes |      message
@@ -89,7 +89,7 @@ overtime log
 
 You can of course also work with the data directly from postgres:
 
-```
+```bash
 psql -d overtime  # subsitute "overtime" with whatever custom db name you may have choosen during installation
 
 overtime=# \d
