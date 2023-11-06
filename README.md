@@ -18,7 +18,7 @@ chmod +x overtime
 export PATH=$PATH:`pwd`
 ```
 
-5. Run the initial installation. This step will create a postgres databased named `overtime` (you may specify another name with the `-c` flag, in which case this has to be provided in all commands) with one table called `overtime`. This is where all logged hours will be stored.
+5. Run the initial installation. This step will create a postgres database named `overtime` (you may specify another name with the `-c` flag, in which case this has to be provided in all commands) with one table called `overtime`. This is where all logged hours will be stored.
 
 ```bash
 overtime install
@@ -90,7 +90,7 @@ overtime log
 You can of course also work with the data directly from postgres:
 
 ```bash
-psql -d overtime  # subsitute "overtime" with whatever custom db name you may have choosen during installation
+psql -d overtime  # substitute "overtime" with whatever custom db name you may have chosen during installation
 
 overtime=# \d
               List of relations
