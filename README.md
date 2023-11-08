@@ -2,11 +2,14 @@
 
 A simple program to register overtime work hours.
 
-## Installation
+## Dependencies
+- Postgres (tested on 14.9)
+- Bash >= 4.2 
 
-1. Make sure that you have postgres installed.
-2. Clone this repo.
-3. Change directory to the repo and make the program executable with
+
+## Installation
+1. Clone this repo.
+2. Change directory to the repo and make the program executable with
 
 ```bash
 chmod +x overtime
